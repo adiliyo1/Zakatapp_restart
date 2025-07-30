@@ -1,1 +1,3 @@
-restarting the project from scratch
+Zakat app that helps users calculate the exact amount of zakat they owe based on real-time financial data from their bank accounts, investment platforms like Robinhood, and other financial institutions. The aim is to make zakat calculation accurate, automated, and stress-free.
+
+The inspiration for this comes from Zakat.fyi. The calculations they use look to be in line with what I would like to implement. This app takes it one step further by automatically pulling certain information so the user does not have to manually type.
