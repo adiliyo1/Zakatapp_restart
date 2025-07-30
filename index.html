@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZakatEase - Automated Zakat Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.5/babel.min.js"></script>
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .calculator-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .zakat-summary {
+            background: linear-gradient(135deg, #00c851 0%, #007e33 100%);
+            border-radius: 15px;
+            padding: 30px;
+            color: white;
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .plaid-button {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .plaid-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .plaid-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .accounts-list {
+            margin: 20px 0;
+        }
+
+        .account-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .account-info {
+            flex-grow: 1;
+        }
+
+        .account-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .account-balance {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .account-type {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .zakat-summary h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .summary-label {
+            font-weight: 400;
+        }
+
+        .summary-value {
+            font-weight: 600;
+        }
+
+        .zakat-total {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .nisab-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+
+        .nisab-info h4 {
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Mock Plaid configuration - In production, use your actual Plaid keys
+        const PLAID_CONFIG = {
+            // Replace with your actual Plaid public key
+            publicKey: 'YOUR_PLAID_PUBLIC_KEY',
+            env: 'sandbox', // or 'development', 'production'
+            clientName: 'ZakatEase',
+            product: ['accounts'],
+            onSuccess: function(public_token, metadata) {
+                console.log('Plaid success:', public_token, metadata);
+            },
+            onExit: function(err, metadata) {
+                console.log('Plaid exit:', err, metadata);
+            }
+        };
+
+        // Current gold price (you'd fetch this from an API in production)
+        const CURRENT_GOLD_PRICE_PER_GRAM = 65; // USD
+        const NISAB_GOLD_GRAMS = 87.48; // Islamic standard
+        const NISAB_THRESHOLD = NISAB_GOLD_GRAMS * CURRENT_GOLD_PRICE_PER_GRAM;
+        const ZAKAT_RATE = 0.025; // 2.5%
+
+        function ZakatCalculator() {
+            const [connectedAccounts, setConnectedAccounts] = useState([]);
+            const [manualAssets, setManualAssets] = useState({
+                cash: 0,
+                savings: 0,
+                gold: 0,
+                silver: 0,
+                investments: 0,
+                businessAssets: 0
+            });
+            const [debts, setDebts] = useState({
+                creditCards: 0,
+                loans: 0,
+                mortgages: 0,
+                otherDebts: 0
+            });
+            const [isPlaidLoading, setIsPlaidLoading] = useState(false);
+            const [error, setError] = useState('');
+
+            // Calculate totals
+            const totalAssets = Object.values(manualAssets).reduce((sum, val) => sum + parseFloat(val || 0), 0) +
+                               connectedAccounts.reduce((sum, account) => sum + account.balance, 0);
+            
+            const totalDebts = Object.values(debts).reduce((sum, val) => sum + parseFloat(val || 0), 0);
+            const netWorth = totalAssets - totalDebts;
+            const zakatableAmount = Math.max(0, netWorth);
+            const zakatOwed = zakatableAmount >= NISAB_THRESHOLD ? zakatableAmount * ZAKAT_RATE : 0;
+
+            // Mock Plaid Link handler
+            const handlePlaidSuccess = (publicToken, metadata) => {
+                setIsPlaidLoading(true);
+                setError('');
+                
+                // Mock API call to exchange public token for access token
+                // In production, you'd send this to your backend
+                setTimeout(() => {
+                    // Mock account data
+                    const mockAccounts = [
+                        {
+                            id: '1',
+                            name: 'Chase Checking',
+                            type: 'depository',
+                            subtype: 'checking',
+                            balance: 5250.00
+                        },
+                        {
+                            id: '2',
+                            name: 'Chase Savings',
+                            type: 'depository',
+                            subtype: 'savings',  
+                            balance: 12750.00
+                        },
+                        {
+                            id: '3',
+                            name: 'Robinhood',
+                            type: 'investment',
+                            subtype: 'brokerage',
+                            balance: 8500.00
+                        }
+                    ];
+                    
+                    setConnectedAccounts(mockAccounts);
+                    setIsPlaidLoading(false);
+                }, 2000);
+            };
+
+            const openPlaidLink = () => {
+                // In production, initialize Plaid Link here
+                // For demo purposes, we'll simulate the connection
+                handlePlaidSuccess('mock_public_token', {});
+            };
+
+            const handleManualAssetChange = (key, value) => {
+                setManualAssets(prev => ({
+                    ...prev,
+                    [key]: value
+                }));
+            };
+
+            const handleDebtChange = (key, value) => {
+                setDebts(prev => ({
+                    ...prev,
+                    [key]: value
+                }));
+            };
+
+            const formatCurrency = (amount) => {
+                return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD'
+                }).format(amount);
+            };
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>ZakatEase</h1>
+                        <p>Automated Zakat Calculator for US Muslims</p>
+                    </div>
+
+                    <div className="main-content">
+                        <div className="calculator-section">
+                            {/* Nisab Information */}
+                            <div className="nisab-info">
+                                <h4>Nisab Threshold</h4>
+                                <p>Current Nisab (based on gold): <strong>{formatCurrency(NISAB_THRESHOLD)}</strong></p>
+                                <p>Gold price: ${CURRENT_GOLD_PRICE_PER_GRAM}/gram</p>
+                            </div>
+
+                            {error && (
+                                <div className="error-message">
+                                    {error}
+                                </div>
+                            )}
+
+                            {/* Plaid Integration */}
+                            <div className="section">
+                                <h3 className="section-title">Connect Your Accounts</h3>
+                                <button 
+                                    className="plaid-button" 
+                                    onClick={openPlaidLink}
+                                    disabled={isPlaidLoading}
+                                >
+                                    {isPlaidLoading ? 'Connecting...' : 'Connect Bank & Investment Accounts'}
+                                </button>
+
+                                {connectedAccounts.length > 0 && (
+                                    <div className="accounts-list">
+                                        <h4>Connected Accounts:</h4>
+                                        {connectedAccounts.map(account => (
+                                            <div key={account.id} className="account-item">
+                                                <div className="account-info">
+                                                    <div className="account-name">{account.name}</div>
+                                                    <div className="account-type">{account.subtype}</div>
+                                                </div>
+                                                <div className="account-balance">
+                                                    {formatCurrency(account.balance)}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Manual Assets */}
+                            <div className="section">
+                                <h3 className="section-title">Additional Assets</h3>
+                                
+                                <div className="input-group">
+                                    <label>Cash on Hand</label>
+                                    <input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={manualAssets.cash}
+                                        onChange={(e) => handleManualAssetChange('cash', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="input-group">
+                                    <label>Gold (USD value)</label>
+                                    <input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={manualAssets.gold}
+                                        onChange={(e) => handleManualAssetChange('gold', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="input-group">
+                                    <label>Silver (USD value)</label>
+                                    <input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={manualAssets.silver}
+                                        onChange={(e) => handleManualAssetChange('silver', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="input-group">
+                                    <label>Other Investments</label>
+                                    <input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={manualAssets.investments}
+                                        onChange={(e) => handleManualAssetChange('investments', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="input-group">
+                                    <label>Business Assets</label>
+                                    <input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={manualAssets.businessAssets}
+                                        onChange={(e) => handleManualAssetChange('businessAssets', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Debts */}
+                            <div className="section">
+                                <h3 className="section-title">Debts & Liabilities</h3>
+                                
+                                <div className="input-group">
+                                    <label>Credit Card Debt</label>
+                                    <input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={debts.creditCards}
+                                        onChange={(e) => handleDebtChange('creditCards', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="input-group">
+                                    <label>Personal Loans</label>
+                                    <input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={debts.loans}
+                                        onChange={(e) => handleDebtChange('loans', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="input-group">
+                                    <label>Other Debts</label>
+                                    <input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={debts.otherDebts}
+                                        onChange={(e) => handleDebtChange('otherDebts', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Zakat Summary */}
+                        <div className="zakat-summary">
+                            <h3>Your Zakat Calculation</h3>
+                            
+                            <div className="summary-item">
+                                <span className="summary-label">Total Assets:</span>
+                                <span className="summary-value">{formatCurrency(totalAssets)}</span>
+                            </div>
+                            
+                            <div className="summary-item">
+                                <span className="summary-label">Total Debts:</span>
+                                <span className="summary-value">{formatCurrency(totalDebts)}</span>
+                            </div>
+                            
+                            <div className="summary-item">
+                                <span className="summary-label">Net Zakatable Wealth:</span>
+                                <span className="summary-value">{formatCurrency(zakatableAmount)}</span>
+                            </div>
+                            
+                            <div className="summary-item">
+                                <span className="summary-label">Nisab Threshold:</span>
+                                <span className="summary-value">{formatCurrency(NISAB_THRESHOLD)}</span>
+                            </div>
+
+                            <div className="zakat-total">
+                                <div>Zakat Owed:</div>
+                                <div>{formatCurrency(zakatOwed)}</div>
+                                {zakatOwed === 0 && zakatableAmount < NISAB_THRESHOLD && (
+                                    <div style={{fontSize: '0.9rem', marginTop: '10px', opacity: '0.8'}}>
+                                        (Below Nisab threshold)
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<ZakatCalculator />, document.getElementById('root'));
+    </script>
+</body>
+</html>
