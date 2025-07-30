@@ -1,0 +1,244 @@
+depository
+An account type holding cash, in which funds are deposited.
+subtypes:
+
+cash management
+A cash management account, typically a cash account at a brokerage
+
+cd
+Certificate of deposit account
+
+checking
+Checking account
+
+ebt
+An Electronic Benefit Transfer (EBT) account, used by certain public assistance programs to distribute funds (US only)
+
+hsa
+Health Savings Account (US only) that can only hold cash
+
+money market
+Money market account
+
+paypal
+PayPal depository account
+
+prepaid
+Prepaid debit card
+
+savings
+Savings account
+
+credit
+A credit card type account.
+subtypes:
+
+credit card
+Bank-issued credit card
+
+paypal
+PayPal-issued credit card
+
+loan
+A loan type account.
+subtypes:
+
+auto
+Auto loan
+
+business
+Business loan
+
+commercial
+Commercial loan
+
+construction
+Construction loan
+
+consumer
+Consumer loan
+
+home equity
+Home Equity Line of Credit (HELOC)
+
+line of credit
+Pre-approved line of credit
+
+loan
+General loan
+
+mortgage
+Mortgage loan
+
+other
+Other loan type or unknown loan type
+
+overdraft
+Pre-approved overdraft account, usually tied to a checking account
+
+student
+Student loan
+
+investment
+An investment account
+subtypes:
+
+529
+Tax-advantaged college savings and prepaid tuition 529 plans (US)
+
+401a
+Employer-sponsored money-purchase 401(a) retirement plan (US)
+
+401k
+Standard 401(k) retirement account (US)
+
+403B
+403(b) retirement savings account for non-profits and schools (US)
+
+457b
+Tax-advantaged deferred-compensation 457(b) retirement plan for governments and non-profits (US)
+
+brokerage
+Standard brokerage account
+
+cash isa
+Individual Savings Account (ISA) that pays interest tax-free (UK)
+
+crypto exchange
+Standard cryptocurrency exchange account
+
+education savings account
+Tax-advantaged Coverdell Education Savings Account (ESA) (US)
+
+fixed annuity
+Fixed annuity
+
+gic
+Guaranteed Investment Certificate (Canada)
+
+health reimbursement arrangement
+Tax-advantaged Health Reimbursement Arrangement (HRA) benefit plan (US)
+
+hsa
+Non-cash tax-advantaged medical Health Savings Account (HSA) (US)
+
+ira
+Traditional Individual Retirement Account (IRA) (US)
+
+isa
+Non-cash Individual Savings Account (ISA) (UK)
+
+keogh
+Keogh self-employed retirement plan (US)
+
+lif
+Life Income Fund (LIF) retirement account (Canada)
+
+life insurance
+Life insurance account
+
+lira
+Locked-in Retirement Account (LIRA) (Canada)
+
+lrif
+Locked-in Retirement Income Fund (LRIF) (Canada)
+
+lrsp
+Locked-in Retirement Savings Plan (Canada)
+
+mutual fund
+Mutual fund account
+
+non-custodial wallet
+A cryptocurrency wallet where the user controls the private key
+
+non-taxable brokerage account
+A non-taxable brokerage account that is not covered by a more specific subtype
+
+other
+An account whose type could not be determined
+
+other annuity
+An annuity account not covered by other subtypes
+
+other insurance
+An insurance account not covered by other subtypes
+
+pension
+Standard pension account
+
+prif
+Prescribed Registered Retirement Income Fund (Canada)
+
+profit sharing plan
+Plan that gives employees share of company profits
+
+qshr
+Qualifying share account
+
+rdsp
+Registered Disability Savings Plan (RSDP) (Canada)
+
+resp
+Registered Education Savings Plan (Canada)
+
+retirement
+Retirement account not covered by other subtypes
+
+rlif
+Restricted Life Income Fund (RLIF) (Canada)
+
+roth
+Roth IRA (US)
+
+roth 401k
+Employer-sponsored Roth 401(k) plan (US)
+
+rrif
+Registered Retirement Income Fund (RRIF) (Canada)
+
+rrsp
+Registered Retirement Savings Plan (Canadian, similar to US 401(k))
+
+sarsep
+Salary Reduction Simplified Employee Pension Plan (SARSEP), discontinued retirement plan (US)
+
+sep ira
+Simplified Employee Pension IRA (SEP IRA), retirement plan for small businesses and self-employed (US)
+
+simple ira
+Savings Incentive Match Plan for Employees IRA, retirement plan for small businesses (US)
+
+sipp
+Self-Invested Personal Pension (SIPP) (UK)
+
+stock plan
+Standard stock plan account
+
+tfsa
+Tax-Free Savings Account (TFSA), a retirement plan similar to a Roth IRA (Canada)
+
+thrift savings plan
+Thrift Savings Plan, a retirement savings and investment plan for Federal employees and members of the uniformed services.
+
+trust
+Account representing funds or assets held by a trustee for the benefit of a beneficiary. Includes both revocable and irrevocable trusts.
+
+ugma
+'Uniform Gift to Minors Act' (brokerage account for minors, US)
+
+utma
+'Uniform Transfers to Minors Act' (brokerage account for minors, US)
+
+variable annuity
+Tax-deferred capital accumulation annuity contract
+
+payroll
+A payroll account.
+subtypes:
+
+payroll
+Standard payroll account
+
+other
+Other or unknown account type.

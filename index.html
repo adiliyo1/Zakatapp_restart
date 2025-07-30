@@ -513,22 +513,56 @@
                                 {connectedAccounts.length > 0 && (
                                     <div className="accounts-list">
                                         <h4>Connected Accounts:</h4>
-                                        {connectedAccounts.map(account => (
-                                            <div key={account.id} className="account-item">
-                                                <div className="account-info">
-                                                    <div className="account-name">{account.name}</div>
-                                                    <div className="account-type">{account.subtype}</div>
-                                                </div>
-                                                <div style={{display: 'flex', alignItems: 'center'}}>
-                                                    <div className="account-balance">
-                                                        {formatCurrency(account.balance)}
+                                        
+                                        {/* Assets Section */}
+                                        {connectedAccounts.filter(acc => !acc.is_debt).length > 0 && (
+                                            <div style={{marginBottom: '20px'}}>
+                                                <h5 style={{color: '#27ae60', marginBottom: '10px'}}>📈 Assets</h5>
+                                                {connectedAccounts
+                                                    .filter(account => !account.is_debt)
+                                                    .map(account => (
+                                                    <div key={account.id} className="account-item">
+                                                        <div className="account-info">
+                                                            <div className="account-name">{account.name}</div>
+                                                            <div className="account-type">{account.subtype}</div>
+                                                        </div>
+                                                        <div style={{display: 'flex', alignItems: 'center'}}>
+                                                            <div className="account-balance">
+                                                                {formatCurrency(account.balance)}
+                                                            </div>
+                                                            <span className={account.is_zakatable ? 'zakatable-badge' : 'non-zakatable-badge'}>
+                                                                {account.is_zakatable ? 'Zakatable' : 'Non-Zakatable'}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <span className={account.is_zakatable ? 'zakatable-badge' : 'non-zakatable-badge'}>
-                                                        {account.is_zakatable ? 'Zakatable' : 'Non-Zakatable'}
-                                                    </span>
-                                                </div>
+                                                ))}
                                             </div>
-                                        ))}
+                                        )}
+                                        
+                                        {/* Debts Section */}
+                                        {connectedAccounts.filter(acc => acc.is_debt).length > 0 && (
+                                            <div>
+                                                <h5 style={{color: '#e74c3c', marginBottom: '10px'}}>💳 Debts</h5>
+                                                {connectedAccounts
+                                                    .filter(account => account.is_debt)
+                                                    .map(account => (
+                                                    <div key={account.id} className="account-item" style={{borderLeft: '4px solid #e74c3c'}}>
+                                                        <div className="account-info">
+                                                            <div className="account-name">{account.name}</div>
+                                                            <div className="account-type">{account.subtype}</div>
+                                                        </div>
+                                                        <div style={{display: 'flex', alignItems: 'center'}}>
+                                                            <div className="account-balance" style={{color: '#e74c3c'}}>
+                                                                -{formatCurrency(account.balance)}
+                                                            </div>
+                                                            <span className={account.is_zakatable ? 'zakatable-badge' : 'non-zakatable-badge'}>
+                                                                {account.is_zakatable ? 'Zakatable' : 'Non-Zakatable'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
