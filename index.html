@@ -143,7 +143,7 @@
             padding: 15px;
             margin-bottom: 10px;
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
         }
 
@@ -164,6 +164,24 @@
         .account-type {
             font-size: 0.9rem;
             color: #7f8c8d;
+        }
+
+        .zakatable-badge {
+            background: #00c851;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .non-zakatable-badge {
+            background: #ff4444;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-left: 10px;
         }
 
         .zakat-summary h3 {
@@ -223,10 +241,42 @@
             margin-bottom: 20px;
         }
 
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
         .loading {
             text-align: center;
             padding: 20px;
             color: #666;
+        }
+
+        .calculate-button {
+            background: linear-gradient(135deg, #00c851 0%, #007e33 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .calculate-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .calculate-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -236,32 +286,14 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // Mock Plaid configuration - In production, use your actual Plaid keys
-        const PLAID_CONFIG = {
-            // Replace with your actual Plaid public key
-            publicKey: 'YOUR_PLAID_PUBLIC_KEY',
-            env: 'sandbox', // or 'development', 'production'
-            clientName: 'ZakatEase',
-            product: ['accounts'],
-            onSuccess: function(public_token, metadata) {
-                console.log('Plaid success:', public_token, metadata);
-            },
-            onExit: function(err, metadata) {
-                console.log('Plaid exit:', err, metadata);
-            }
-        };
-
-        // Current gold price (you'd fetch this from an API in production)
-        const CURRENT_GOLD_PRICE_PER_GRAM = 65; // USD
-        const NISAB_GOLD_GRAMS = 87.48; // Islamic standard
-        const NISAB_THRESHOLD = NISAB_GOLD_GRAMS * CURRENT_GOLD_PRICE_PER_GRAM;
-        const ZAKAT_RATE = 0.025; // 2.5%
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3001/api';
+        const USER_ID = 'demo_user_' + Date.now(); // Generate unique user ID
 
         function ZakatCalculator() {
             const [connectedAccounts, setConnectedAccounts] = useState([]);
             const [manualAssets, setManualAssets] = useState({
                 cash: 0,
-                savings: 0,
                 gold: 0,
                 silver: 0,
                 investments: 0,
@@ -270,64 +302,149 @@
             const [debts, setDebts] = useState({
                 creditCards: 0,
                 loans: 0,
-                mortgages: 0,
                 otherDebts: 0
             });
+            const [zakatCalculation, setZakatCalculation] = useState(null);
             const [isPlaidLoading, setIsPlaidLoading] = useState(false);
+            const [isCalculating, setIsCalculating] = useState(false);
             const [error, setError] = useState('');
+            const [success, setSuccess] = useState('');
+            const [linkToken, setLinkToken] = useState(null);
 
-            // Calculate totals
-            const totalAssets = Object.values(manualAssets).reduce((sum, val) => sum + parseFloat(val || 0), 0) +
-                               connectedAccounts.reduce((sum, account) => sum + account.balance, 0);
-            
-            const totalDebts = Object.values(debts).reduce((sum, val) => sum + parseFloat(val || 0), 0);
-            const netWorth = totalAssets - totalDebts;
-            const zakatableAmount = Math.max(0, netWorth);
-            const zakatOwed = zakatableAmount >= NISAB_THRESHOLD ? zakatableAmount * ZAKAT_RATE : 0;
+            // Initialize Plaid Link Token
+            useEffect(() => {
+                createLinkToken();
+            }, []);
 
-            // Mock Plaid Link handler
-            const handlePlaidSuccess = (publicToken, metadata) => {
+            const createLinkToken = async () => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/create-link-token`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ user_id: USER_ID }),
+                    });
+
+                    const data = await response.json();
+                    if (response.ok) {
+                        setLinkToken(data.link_token);
+                    } else {
+                        setError(`Failed to initialize Plaid: ${data.error}`);
+                    }
+                } catch (err) {
+                    setError('Failed to connect to backend. Make sure your server is running on port 3001.');
+                }
+            };
+
+            // Handle Plaid Link success
+            const handlePlaidSuccess = async (publicToken, metadata) => {
                 setIsPlaidLoading(true);
                 setError('');
-                
-                // Mock API call to exchange public token for access token
-                // In production, you'd send this to your backend
-                setTimeout(() => {
-                    // Mock account data
-                    const mockAccounts = [
-                        {
-                            id: '1',
-                            name: 'Chase Checking',
-                            type: 'depository',
-                            subtype: 'checking',
-                            balance: 5250.00
+                setSuccess('');
+
+                try {
+                    // Exchange public token for access token
+                    const exchangeResponse = await fetch(`${API_BASE_URL}/exchange-public-token`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
                         },
-                        {
-                            id: '2',
-                            name: 'Chase Savings',
-                            type: 'depository',
-                            subtype: 'savings',  
-                            balance: 12750.00
+                        body: JSON.stringify({
+                            public_token: publicToken,
+                            user_id: USER_ID,
+                        }),
+                    });
+
+                    const exchangeData = await exchangeResponse.json();
+                    if (!exchangeResponse.ok) {
+                        throw new Error(exchangeData.error);
+                    }
+
+                    // Fetch accounts
+                    const accountsResponse = await fetch(`${API_BASE_URL}/accounts`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
                         },
-                        {
-                            id: '3',
-                            name: 'Robinhood',
-                            type: 'investment',
-                            subtype: 'brokerage',
-                            balance: 8500.00
-                        }
-                    ];
-                    
-                    setConnectedAccounts(mockAccounts);
+                        body: JSON.stringify({ user_id: USER_ID }),
+                    });
+
+                    const accountsData = await accountsResponse.json();
+                    if (accountsResponse.ok) {
+                        setConnectedAccounts(accountsData.accounts);
+                        setSuccess(`Successfully connected ${accountsData.accounts.length} accounts!`);
+                        // Auto-calculate after connecting accounts
+                        calculateZakat();
+                    } else {
+                        throw new Error(accountsData.error);
+                    }
+                } catch (err) {
+                    setError(`Connection failed: ${err.message}`);
+                } finally {
                     setIsPlaidLoading(false);
-                }, 2000);
+                }
             };
 
+            // Open Plaid Link
             const openPlaidLink = () => {
-                // In production, initialize Plaid Link here
-                // For demo purposes, we'll simulate the connection
-                handlePlaidSuccess('mock_public_token', {});
+                if (!linkToken) {
+                    setError('Plaid is not ready. Please refresh the page.');
+                    return;
+                }
+
+                const handler = Plaid.create({
+                    token: linkToken,
+                    onSuccess: handlePlaidSuccess,
+                    onExit: (err, metadata) => {
+                        if (err) {
+                            setError(`Plaid connection cancelled: ${err.error_message || 'Unknown error'}`);
+                        }
+                    },
+                });
+
+                handler.open();
             };
+
+            // Calculate Zakat
+            const calculateZakat = async () => {
+                setIsCalculating(true);
+                setError('');
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/calculate-zakat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            user_id: USER_ID,
+                            manual_assets: manualAssets,
+                            debts: debts,
+                        }),
+                    });
+
+                    const data = await response.json();
+                    if (response.ok) {
+                        setZakatCalculation(data.calculation);
+                    } else {
+                        setError(`Calculation failed: ${data.error}`);
+                    }
+                } catch (err) {
+                    setError('Failed to calculate Zakat. Please check your connection.');
+                } finally {
+                    setIsCalculating(false);
+                }
+            };
+
+            // Auto-calculate when manual assets or debts change
+            useEffect(() => {
+                const timeoutId = setTimeout(() => {
+                    calculateZakat();
+                }, 500); // Debounce calculations
+
+                return () => clearTimeout(timeoutId);
+            }, [manualAssets, debts]);
 
             const handleManualAssetChange = (key, value) => {
                 setManualAssets(prev => ({
@@ -347,7 +464,7 @@
                 return new Intl.NumberFormat('en-US', {
                     style: 'currency',
                     currency: 'USD'
-                }).format(amount);
+                }).format(amount || 0);
             };
 
             return (
@@ -360,15 +477,23 @@
                     <div className="main-content">
                         <div className="calculator-section">
                             {/* Nisab Information */}
-                            <div className="nisab-info">
-                                <h4>Nisab Threshold</h4>
-                                <p>Current Nisab (based on gold): <strong>{formatCurrency(NISAB_THRESHOLD)}</strong></p>
-                                <p>Gold price: ${CURRENT_GOLD_PRICE_PER_GRAM}/gram</p>
-                            </div>
+                            {zakatCalculation && (
+                                <div className="nisab-info">
+                                    <h4>Nisab Threshold</h4>
+                                    <p>Current Nisab (based on gold): <strong>{formatCurrency(zakatCalculation.nisab_threshold)}</strong></p>
+                                    <p>Gold price: ${zakatCalculation.gold_price || 65}/gram</p>
+                                </div>
+                            )}
 
                             {error && (
                                 <div className="error-message">
                                     {error}
+                                </div>
+                            )}
+
+                            {success && (
+                                <div className="success-message">
+                                    {success}
                                 </div>
                             )}
 
@@ -378,9 +503,11 @@
                                 <button 
                                     className="plaid-button" 
                                     onClick={openPlaidLink}
-                                    disabled={isPlaidLoading}
+                                    disabled={isPlaidLoading || !linkToken}
                                 >
-                                    {isPlaidLoading ? 'Connecting...' : 'Connect Bank & Investment Accounts'}
+                                    {isPlaidLoading ? 'Connecting...' : 
+                                     !linkToken ? 'Loading...' : 
+                                     'Connect Bank & Investment Accounts'}
                                 </button>
 
                                 {connectedAccounts.length > 0 && (
@@ -392,8 +519,13 @@
                                                     <div className="account-name">{account.name}</div>
                                                     <div className="account-type">{account.subtype}</div>
                                                 </div>
-                                                <div className="account-balance">
-                                                    {formatCurrency(account.balance)}
+                                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                                    <div className="account-balance">
+                                                        {formatCurrency(account.balance)}
+                                                    </div>
+                                                    <span className={account.is_zakatable ? 'zakatable-badge' : 'non-zakatable-badge'}>
+                                                        {account.is_zakatable ? 'Zakatable' : 'Non-Zakatable'}
+                                                    </span>
                                                 </div>
                                             </div>
                                         ))}
@@ -490,41 +622,67 @@
                                     />
                                 </div>
                             </div>
+
+                            <button 
+                                className="calculate-button"
+                                onClick={calculateZakat}
+                                disabled={isCalculating}
+                            >
+                                {isCalculating ? 'Calculating...' : 'Recalculate Zakat'}
+                            </button>
                         </div>
 
                         {/* Zakat Summary */}
                         <div className="zakat-summary">
                             <h3>Your Zakat Calculation</h3>
                             
-                            <div className="summary-item">
-                                <span className="summary-label">Total Assets:</span>
-                                <span className="summary-value">{formatCurrency(totalAssets)}</span>
-                            </div>
-                            
-                            <div className="summary-item">
-                                <span className="summary-label">Total Debts:</span>
-                                <span className="summary-value">{formatCurrency(totalDebts)}</span>
-                            </div>
-                            
-                            <div className="summary-item">
-                                <span className="summary-label">Net Zakatable Wealth:</span>
-                                <span className="summary-value">{formatCurrency(zakatableAmount)}</span>
-                            </div>
-                            
-                            <div className="summary-item">
-                                <span className="summary-label">Nisab Threshold:</span>
-                                <span className="summary-value">{formatCurrency(NISAB_THRESHOLD)}</span>
-                            </div>
-
-                            <div className="zakat-total">
-                                <div>Zakat Owed:</div>
-                                <div>{formatCurrency(zakatOwed)}</div>
-                                {zakatOwed === 0 && zakatableAmount < NISAB_THRESHOLD && (
-                                    <div style={{fontSize: '0.9rem', marginTop: '10px', opacity: '0.8'}}>
-                                        (Below Nisab threshold)
+                            {zakatCalculation ? (
+                                <>
+                                    <div className="summary-item">
+                                        <span className="summary-label">Connected Accounts:</span>
+                                        <span className="summary-value">{formatCurrency(zakatCalculation.plaid_balance)}</span>
                                     </div>
-                                )}
-                            </div>
+                                    
+                                    <div className="summary-item">
+                                        <span className="summary-label">Manual Assets:</span>
+                                        <span className="summary-value">{formatCurrency(zakatCalculation.manual_assets)}</span>
+                                    </div>
+                                    
+                                    <div className="summary-item">
+                                        <span className="summary-label">Total Assets:</span>
+                                        <span className="summary-value">{formatCurrency(zakatCalculation.total_assets)}</span>
+                                    </div>
+                                    
+                                    <div className="summary-item">
+                                        <span className="summary-label">Total Debts:</span>
+                                        <span className="summary-value">{formatCurrency(zakatCalculation.total_debts)}</span>
+                                    </div>
+                                    
+                                    <div className="summary-item">
+                                        <span className="summary-label">Net Zakatable Wealth:</span>
+                                        <span className="summary-value">{formatCurrency(zakatCalculation.net_worth)}</span>
+                                    </div>
+                                    
+                                    <div className="summary-item">
+                                        <span className="summary-label">Nisab Threshold:</span>
+                                        <span className="summary-value">{formatCurrency(zakatCalculation.nisab_threshold)}</span>
+                                    </div>
+
+                                    <div className="zakat-total">
+                                        <div>Zakat Owed:</div>
+                                        <div>{formatCurrency(zakatCalculation.zakat_owed)}</div>
+                                        {!zakatCalculation.above_nisab && (
+                                            <div style={{fontSize: '0.9rem', marginTop: '10px', opacity: '0.8'}}>
+                                                (Below Nisab threshold)
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="loading">
+                                    {isCalculating ? 'Calculating...' : 'Enter your information to calculate Zakat'}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -12,7 +12,17 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://adiliyo1.github.io',
+  origin: [
+    'https://adiliyo1.github.io',
+    'http://localhost:3000',
+    'http://localhost:8080',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:8080',
+    'http://localhost:5500', 
+    'http://127.0.0.1:5500', 
+    'https://adiliyo1.github.io',
+    null // Allow file:// protocol for local HTML files
+  ],
   credentials: true
 }));
 app.use(express.json());
