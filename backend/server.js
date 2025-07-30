@@ -71,7 +71,7 @@ app.post('/api/create-link-token', async (req, res) => {
         client_user_id: user_id,
       },
       client_name: 'ZakatEase',
-      products: ['accounts'],
+      products: ['transactions'],
       country_codes: ['US'],
       language: 'en',
     };
