@@ -70,7 +70,7 @@ app.post('/api/create-link-token', async (req, res) => {
       user: {
         client_user_id: user_id,
       },
-      client_name: 'ZakatEase',
+      client_name: 'Nisably',
       products: ['transactions'],
       country_codes: ['US'],
       language: 'en',
